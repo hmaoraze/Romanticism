@@ -46,48 +46,148 @@
         });
     </script>
 
-    <script src="<?php $this->options->themeUrl('config/mdui/js/mdui.min.js'); ?>"></script>
-    <script src="<?php $this->options->themeUrl('config/js/jquery.min.js'); ?>"></script>
+    <script src="<?php $this->options->themeUrl('config/mdui/js/mdui.min.js'); ?>" defer></script>
+    <script src="<?php $this->options->themeUrl('config/js/jquery.min.js'); ?>" defer></script>
     
-    <script src="<?php $this->options->themeUrl('config/js/listLazyload.js?v=2.2'); ?>"></script>
-    <script src="<?php $this->options->themeUrl('config/js/tagIcon.js?v=2.2'); ?>"></script>
-    <script src="<?php $this->options->themeUrl('config/js/customStyle.js?v=2.2'); ?>"></script>
-    <script src="<?php $this->options->themeUrl('config/js/returntop.js?v=2.2'); ?>"></script>
-    <script src="<?php $this->options->themeUrl('config/js/prism.highlight.js'); ?>"></script>
+    <script src="<?php $this->options->themeUrl('config/js/lazyload.js?v=2.2'); ?>" defer></script>
+    <script src="<?php $this->options->themeUrl('config/js/tagIcon.js?v=2.2'); ?>" defer></script>
+    <script src="<?php $this->options->themeUrl('config/js/customStyle.js?v=2.2'); ?>" defer></script>
+    <script src="<?php $this->options->themeUrl('config/js/returntop.js?v=2.2'); ?>" defer></script>
+    <script src="<?php $this->options->themeUrl('config/js/prism.highlight.js'); ?>" defer></script>
 
-    <script src="<?php $this->options->themeUrl('config/js/jquery.fancybox.min.js'); ?>"></script>
-    <script>
-        $(document).ready(function () {
-            $( ".fancybox").fancybox();
-        });
-    </script>
-
+    <script src="<?php $this->options->themeUrl('config/js/jquery.fancybox.min.js'); ?>" defer></script>
     <?php if (!empty($this->options->AKAROMfucset) && in_array('AKAROMindexloading', $this->options->AKAROMfucset)): ?>
-    <script type="text/javascript" src="<?php $this->options->themeUrl('config/js/loading.js?v=2.2'); ?>"></script>
+    <script type="text/javascript" src="<?php $this->options->themeUrl('config/js/loading.js?v=2.2'); ?>" defer></script>
     <?php endif; ?>
     
-    <script src="<?php $this->options->themeUrl('config/js/OwO.js'); ?>"></script>
+    <script src="<?php $this->options->themeUrl('config/js/OwO.js'); ?>" defer></script>
+    
     <script>
-    function OwO_show() {
-        if ($(".OwO-items").css("max-height") == '0px') {
-            $(".OwO").addClass("OwO-open");
-        } else {
-            $(".OwO").removeClass("OwO-open");
+    // 等待所有脚本加载完成
+    window.addEventListener('DOMContentLoaded', function() {
+        // 初始化Fancybox
+        if (typeof $ !== 'undefined' && $.fancybox) {
+            $( ".fancybox").fancybox();
         }
-    }
+        
+        // 初始化OwO
+        if (typeof $ !== 'undefined') {
+            window.OwO_show = function() {
+                if ($(".OwO-items").css("max-height") == '0px') {
+                    $(".OwO").addClass("OwO-open");
+                } else {
+                    $(".OwO").removeClass("OwO-open");
+                }
+            };
+        }
+    });
     </script>
 
-    <script src="<?php $this->options->themeUrl('config/js/md5.min.js'); ?>"></script>
-    <script src="<?php $this->options->themeUrl('config/js/preheadicon.js?v=2.2'); ?>"></script>
+    <script src="<?php $this->options->themeUrl('config/js/md5.min.js'); ?>" defer></script>
+    <script src="<?php $this->options->themeUrl('config/js/preheadicon.js?v=2.2'); ?>" defer></script>
 
     <!-- 自定义JS -->
     <?php if(!empty($this->options->AKAROMcustomJs)): ?>
-        <script type="text/javascript">
+        <script type="text/javascript" defer>
             <?php $this->options->AKAROMcustomJs(); ?>
         </script>
     <?php endif; ?>
 
     <?php $this->footer(); ?>
+    
+    <!-- 性能监控代码 -->
+    <script>
+    // 性能监控
+    (function() {
+        // 核心Web指标监控
+        const metrics = {
+            lcp: 0,
+            fid: 0,
+            cls: 0
+        };
+        
+        // 监控LCP（最大内容绘制）
+        try {
+            new PerformanceObserver((entries) => {
+                const lcpEntry = entries.getEntries()[0];
+                if (lcpEntry) {
+                    metrics.lcp = lcpEntry.startTime;
+                    console.log('LCP:', metrics.lcp, 'ms');
+                }
+            }).observe({ type: 'largest-contentful-paint', buffered: true });
+        } catch (e) {
+            console.log('浏览器不支持LCP监控:', e.message);
+        }
+        
+        // 监控FID（首次输入延迟）
+        try {
+            new PerformanceObserver((entries) => {
+                const fidEntry = entries.getEntries()[0];
+                if (fidEntry) {
+                    metrics.fid = fidEntry.processingStart - fidEntry.startTime;
+                    console.log('FID:', metrics.fid, 'ms');
+                }
+            }).observe({ type: 'first-input', buffered: true });
+        } catch (e) {
+            console.log('浏览器不支持FID监控:', e.message);
+        }
+        
+        // 监控CLS（累积布局偏移）
+        try {
+            let cumulativeLayoutShift = 0;
+            
+            new PerformanceObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.hadRecentInput) {
+                        cumulativeLayoutShift += entry.value;
+                        metrics.cls = cumulativeLayoutShift;
+                        console.log('CLS:', metrics.cls);
+                    }
+                });
+            }).observe({ type: 'layout-shift', buffered: true });
+        } catch (e) {
+            console.log('浏览器不支持CLS监控:', e.message);
+        }
+        
+        // 页面加载完成后报告性能指标
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('=== 性能指标报告 ===');
+                console.log('LCP (最大内容绘制):', metrics.lcp.toFixed(2), 'ms');
+                console.log('FID (首次输入延迟):', metrics.fid.toFixed(2), 'ms');
+                console.log('CLS (累积布局偏移):', metrics.cls.toFixed(4));
+                console.log('================================');
+                
+                // 检查是否达到性能目标
+                const targets = {
+                    lcp: 2500, // 2.5秒
+                    fid: 100,  // 100毫秒
+                    cls: 0.1   // 0.1
+                };
+                
+                console.log('=== 性能目标检查 ===');
+                console.log('LCP <', targets.lcp, 'ms:', metrics.lcp < targets.lcp ? '✓' : '✗');
+                console.log('FID <', targets.fid, 'ms:', metrics.fid < targets.fid ? '✓' : '✗');
+                console.log('CLS <', targets.cls, ':', metrics.cls < targets.cls ? '✓' : '✗');
+                console.log('================================');
+            }, 1000);
+        });
+        
+        // 网络请求性能监控
+        if ('navigation' in performance) {
+            const navTiming = performance.getEntriesByType('navigation')[0];
+            if (navTiming) {
+                console.log('=== 网络性能指标 ===');
+                console.log('页面加载时间:', (navTiming.loadEventEnd - navTiming.navigationStart).toFixed(2), 'ms');
+                console.log('DNS解析时间:', (navTiming.domainLookupEnd - navTiming.domainLookupStart).toFixed(2), 'ms');
+                console.log('TCP连接时间:', (navTiming.connectEnd - navTiming.connectStart).toFixed(2), 'ms');
+                console.log('首字节时间(TTFB):', (navTiming.responseStart - navTiming.navigationStart).toFixed(2), 'ms');
+                console.log('内容下载时间:', (navTiming.responseEnd - navTiming.responseStart).toFixed(2), 'ms');
+                console.log('================================');
+            }
+        }
+    })();
+    </script>
 </div>
 </body>
 </html>

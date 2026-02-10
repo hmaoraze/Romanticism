@@ -31,6 +31,86 @@ error_reporting(0);
     <meta name="author" content="<?php $this->author(); ?>"/>
     <meta name="TypechoTemplateInfo" content="Creator: Akashi Nishikata; Link: imakashi.eu.org; Release: 2025-08">
 
+    <!-- SEO Meta标签 -->
+    <?php
+    // 获取SEO设置
+    $seoKeywords = $this->fields->AKAROMseoPageKeywords ? $this->fields->AKAROMseoPageKeywords : $this->options->AKAROMseoKeywords;
+    $seoDescription = $this->fields->AKAROMseoPageDescription ? $this->fields->AKAROMseoPageDescription : $this->options->AKAROMseoDescription;
+    $seoTitle = $this->fields->AKAROMseoTitle ? $this->fields->AKAROMseoTitle : $this->title;
+    $seoTitleFormat = $this->options->AKAROMseoTitleFormat ? $this->options->AKAROMseoTitleFormat : 'title-site';
+    $seoSeparator = $this->options->AKAROMseoSeparator ? $this->options->AKAROMseoSeparator : '-';
+    
+    // 生成标题
+    if ($this->is('single') || $this->is('page')) {
+        if ($seoTitleFormat == 'title-site') {
+            $pageTitle = $seoTitle . ' ' . $seoSeparator . ' ' . $this->options->title;
+        } elseif ($seoTitleFormat == 'site-title') {
+            $pageTitle = $this->options->title . ' ' . $seoSeparator . ' ' . $seoTitle;
+        } else {
+            $pageTitle = $seoTitle;
+        }
+    } else {
+        $archiveTitle = '';
+        ob_start();
+        $this->archiveTitle(array(
+            'category'  =>  _t('分类 %s 下的文章'),
+            'search'    =>  _t('包含关键字 %s 的文章'),
+            'tag'       =>  _t('标签 %s 下的文章'),
+            'author'    =>  _t('%s 发布的文章')
+        ), '', '');
+        $archiveTitle = ob_get_clean();
+        
+        if ($seoTitleFormat == 'title-site') {
+            $pageTitle = $archiveTitle . ' ' . $seoSeparator . ' ' . $this->options->title;
+        } elseif ($seoTitleFormat == 'site-title') {
+            $pageTitle = $this->options->title . ' ' . $seoSeparator . ' ' . $archiveTitle;
+        } else {
+            $pageTitle = $archiveTitle;
+        }
+    }
+    
+    // 输出Meta标签
+    if ($seoKeywords) {
+        echo '<meta name="keywords" content="' . htmlspecialchars($seoKeywords) . '"/>';
+    }
+    if ($seoDescription) {
+        echo '<meta name="description" content="' . htmlspecialchars($seoDescription) . '"/>';
+    }
+    
+    // 输出Canonical标签
+    if ($this->fields->AKAROMseoCanonical) {
+        echo '<link rel="canonical" href="' . htmlspecialchars($this->fields->AKAROMseoCanonical) . '"/>';
+    } elseif ($this->is('single') || $this->is('page')) {
+        echo '<link rel="canonical" href="' . htmlspecialchars($this->permalink) . '"/>';
+    }
+    
+    // 输出Nofollow标签
+    if ($this->fields->AKAROMseoNofollow && in_array('enable', $this->fields->AKAROMseoNofollow)) {
+        echo '<meta name="robots" content="nofollow"/>';
+    }
+    ?>
+
+    <!-- Open Graph标签 -->
+    <meta property="og:type" content="<?php echo $this->is('single') || $this->is('page') ? 'article' : 'website'; ?>"/>
+    <meta property="og:title" content="<?php echo htmlspecialchars($pageTitle); ?>"/>
+    <meta property="og:url" content="<?php echo htmlspecialchars($this->permalink); ?>"/>
+    <?php if ($seoDescription): ?>
+    <meta property="og:description" content="<?php echo htmlspecialchars($seoDescription); ?>"/>
+    <?php endif; ?>
+    <?php if ($this->fields->AKAROMarticleimg): ?>
+    <meta property="og:image" content="<?php echo htmlspecialchars($this->fields->AKAROMarticleimg); ?>"/>
+    <?php endif; ?>
+
+    <!-- Twitter Cards标签 -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="<?php echo htmlspecialchars($pageTitle); ?>"/>
+    <?php if ($seoDescription): ?>
+    <meta name="twitter:description" content="<?php echo htmlspecialchars($seoDescription); ?>"/>
+    <?php endif; ?>
+    <?php if ($this->fields->AKAROMarticleimg): ?>
+    <meta name="twitter:image" content="<?php echo htmlspecialchars($this->fields->AKAROMarticleimg); ?>"/>
+    <?php endif; ?>
+
     <!-- 通过自有函数输出HTML头部信息 -->
     <?php $this->header(); ?>
 
@@ -38,12 +118,10 @@ error_reporting(0);
 
     <link href="https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@400;900&amp;display=swap" rel="stylesheet">
 
-    <title><?php $this->archiveTitle(array(
-            'category'  =>  _t('分类 %s 下的文章'),
-            'search'    =>  _t('包含关键字 %s 的文章'),
-            'tag'       =>  _t('标签 %s 下的文章'),
-            'author'    =>  _t('%s 发布的文章')
-        ), '', ' - '); ?><?php $this->options->title(); ?></title>
+    <title><?php echo htmlspecialchars($pageTitle); ?></title>
+
+    <!-- 页面加载速度优化 -->
+    <?php AKAROM_speed_optimization(); ?>
 
     <!-- 使用url函数转换相关路径 -->
     <link rel="stylesheet" href="<?php $this->options->themeUrl('config/mdui/css/mdui.min.css'); ?>">

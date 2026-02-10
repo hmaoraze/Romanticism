@@ -44,6 +44,8 @@
 <div class="LDtrans">
 <div class="mdui-container">
 
+<?php AKAROM_breadcrumb($this); ?>
+
 <div class="akarom-articletag akarom-articletag-style blur mdui-shadow-0"> 
     <i class="mdui-list-item-icon mdui-icon material-icons">color_lens</i>
     <div class="akarom-articletag-options">
